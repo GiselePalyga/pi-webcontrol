@@ -267,6 +267,35 @@ pi-univesp/
 
 ---
 
+## Banco de Dados
+
+O sistema utiliza **SQLite 3** gerenciado pelo Django ORM. O arquivo `db.sqlite3` é armazenado em `/app/database/` dentro do container e persistido via volume Docker nomeado `db_data` — os dados não são perdidos ao recriar o container.
+
+### Modelo de Dados
+
+| Tabela | Descrição |
+|--------|-----------|
+| `fornecedores_fornecedor` | Fornecedores com dados cadastrais e endereço |
+| `produtos_produto` | Produtos com preços, estoque e dados fiscais |
+| `notas_notafiscal` | Cabeçalho da nota fiscal |
+| `notas_itemnotafiscal` | Itens vinculados à nota (produto, qtd, preço) |
+| `financeiro_pagamento` | Pagamentos parciais ou totais por nota |
+
+### Relacionamentos
+
+```
+Fornecedor (1) ───── (N) NotaFiscal
+NotaFiscal (1) ───── (N) ItemNotaFiscal
+NotaFiscal (1) ───── (N) Pagamento
+Produto    (1) ───── (N) ItemNotaFiscal  [opcional]
+```
+
+Documentação completa com diagrama ER, índices e regras de integridade: [`database/README.md`](database/README.md)
+
+Esquema SQL das tabelas: [`database/schema.sql`](database/schema.sql)
+
+---
+
 ## Desenvolvimento Local (sem Docker)
 
 ```bash
