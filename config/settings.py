@@ -7,13 +7,14 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-me-in-producti
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
+ALLOWED_HOSTS = [h.strip() for h in config("ALLOWED_HOSTS", default="*").split(",") if h.strip()]
 
-# Auto-build from ALLOWED_HOSTS + optional extra origins via env
+# Auto-build CSRF_TRUSTED_ORIGINS from ALLOWED_HOSTS
+_skip = {"*", "localhost", "127.0.0.1"}
 _csrf_extra = [o.strip() for o in config("CSRF_TRUSTED_ORIGINS", default="").split(",") if o.strip()]
 CSRF_TRUSTED_ORIGINS = list({
-    *[f"https://{h}" for h in ALLOWED_HOSTS if h not in ("*", "localhost", "127.0.0.1")],
-    *[f"http://{h}" for h in ALLOWED_HOSTS if h not in ("*", "localhost", "127.0.0.1")],
+    *[f"https://{h}" for h in ALLOWED_HOSTS if h not in _skip],
+    *[f"http://{h}" for h in ALLOWED_HOSTS if h not in _skip],
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     *_csrf_extra,
