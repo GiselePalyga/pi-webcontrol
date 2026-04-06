@@ -8,4 +8,5 @@ urlpatterns = [
     path("novo/", views.novo, name="novo"),
     path("<int:pk>/editar/", views.editar, name="editar"),
     path("<int:pk>/toggle/", views.toggle_ativo, name="toggle"),
+    path("<int:pk>/json/", views.produto_json, name="json"),
 ]

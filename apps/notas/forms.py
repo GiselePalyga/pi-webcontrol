@@ -41,11 +41,25 @@ class ItemNotaFiscalForm(forms.ModelForm):
         model = ItemNotaFiscal
         fields = ["produto", "descricao", "quantidade", "valor_unitario"]
         widgets = {
-            "produto": forms.Select(attrs={"class": "form-select form-select-sm"}),
-            "descricao": forms.TextInput(attrs={"class": "form-control form-control-sm", "placeholder": "Descrição do item"}),
-            "quantidade": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.001", "min": "0.001"}),
-            "valor_unitario": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.01", "min": "0.01"}),
+            "produto": forms.Select(attrs={"class": "form-select form-select-sm item-produto"}),
+            "descricao": forms.TextInput(attrs={"class": "form-control form-control-sm", "placeholder": "Preenchido automaticamente"}),
+            "quantidade": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.001", "min": "0.001", "placeholder": "0"}),
+            "valor_unitario": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.01", "min": "0.01", "placeholder": "0,00"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["descricao"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        produto = cleaned.get("produto")
+        descricao = cleaned.get("descricao", "").strip()
+        if produto and not descricao:
+            cleaned["descricao"] = produto.nome
+        elif not produto and not descricao:
+            raise forms.ValidationError("Informe o produto ou a descrição do item.")
+        return cleaned
 
 
 ItemFormSet = inlineformset_factory(

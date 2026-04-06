@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.db.models import Q
 from .models import Produto
 from .forms import ProdutoForm
@@ -39,6 +40,16 @@ def editar(request, pk):
         messages.success(request, "Produto atualizado com sucesso!")
         return redirect("produtos:lista")
     return render(request, "produtos/form.html", {"form": form, "titulo": "Editar Produto", "produto": produto})
+
+
+@login_required
+def produto_json(request, pk):
+    produto = get_object_or_404(Produto, pk=pk, ativo=True)
+    return JsonResponse({
+        "nome": produto.nome,
+        "preco_custo": str(produto.preco_custo),
+        "unidade_medida": produto.get_unidade_medida_display(),
+    })
 
 
 @login_required
