@@ -30,12 +30,12 @@
         <option value="vencida"  {% if form_filtro.status.value == 'vencida'  %}selected{% endif %}>Vencida</option>
         <option value="cancelada"{% if form_filtro.status.value == 'cancelada'%}selected{% endif %}>Cancelada</option>
       </select>
-      <input type="date" name="data_inicio" class="filter-date"
-             value="{{ form_filtro.data_inicio.value|default:'' }}"
-             title="De" onchange="this.form.submit()">
-      <input type="date" name="data_fim" class="filter-date"
-             value="{{ form_filtro.data_fim.value|default:'' }}"
-             title="Até" onchange="this.form.submit()">
+      <input type="text" name="data_inicio" class="filter-date" data-mask="data"
+             value="{{ form_filtro.data_inicio.value|date:'d/m/Y'|default:'' }}"
+             placeholder="dd/mm/aaaa" title="De" maxlength="10">
+      <input type="text" name="data_fim" class="filter-date" data-mask="data"
+             value="{{ form_filtro.data_fim.value|date:'d/m/Y'|default:'' }}"
+             placeholder="dd/mm/aaaa" title="Até" maxlength="10">
     </div>
   </form>
 </div>

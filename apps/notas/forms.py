@@ -16,8 +16,8 @@ class NotaFiscalForm(forms.ModelForm):
             "numero": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: 001234"}),
             "serie": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: 1"}),
             "fornecedor": forms.Select(attrs={"class": "form-select"}),
-            "data_emissao": forms.DateInput(attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"),
-            "data_vencimento": forms.DateInput(attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"),
+            "data_emissao": forms.DateInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}, format="%d/%m/%Y"),
+            "data_vencimento": forms.DateInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}, format="%d/%m/%Y"),
             "valor_total": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0.01"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "observacoes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
@@ -84,9 +84,11 @@ class NotaFiscalFiltroForm(forms.Form):
     )
     data_inicio = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        input_formats=["%d/%m/%Y", "%Y-%m-%d"],
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}),
     )
     data_fim = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        input_formats=["%d/%m/%Y", "%Y-%m-%d"],
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}),
     )

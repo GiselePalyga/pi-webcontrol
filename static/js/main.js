@@ -110,7 +110,7 @@ function setupLiveSearch(inputId, tbodyId, formId, emptyMsgId, selectId) {
 
 function applyMasks() {
   document.querySelectorAll('[data-mask]').forEach(el => {
-    const fn = { cnpj: maskCNPJ, telefone: maskTelefone, cep: maskCEP, ncm: maskNCM, cest: maskCEST }[el.dataset.mask];
+    const fn = { cnpj: maskCNPJ, telefone: maskTelefone, cep: maskCEP, ncm: maskNCM, cest: maskCEST, data: maskData }[el.dataset.mask];
     if (fn) setupMask(el, fn);
   });
 }
@@ -176,4 +176,11 @@ function maskCEST(v) {
   if (v.length <= 2) return v;
   if (v.length <= 5) return `${v.slice(0,2)}.${v.slice(2)}`;
   return `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5)}`;
+}
+
+function maskData(v) {
+  v = v.replace(/\D/g, '').slice(0, 8);
+  if (v.length <= 2) return v;
+  if (v.length <= 4) return `${v.slice(0,2)}/${v.slice(2)}`;
+  return `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
 }
