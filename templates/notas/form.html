@@ -160,7 +160,7 @@
 
 {% block extra_js %}
 <script>
-const PRODUTO_JSON_URL = "{% url 'produtos:json' 0 %}".replace('/0/', '/');
+const PRODUTO_JSON_URL = "{% url 'produtos:json' 0 %}".replace('/0/json/', '/');
 const totalForms = document.getElementById('id_itens-TOTAL_FORMS');
 let formCount = parseInt(totalForms.value);
 
