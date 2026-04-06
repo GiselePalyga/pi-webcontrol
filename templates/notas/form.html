@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+    <p class="page-subtitle">Preencha os dados da nota fiscal</p>
+  </div>
+  <a href="{% url 'notas:lista' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<form method="post" novalidate id="nota-form">
+{% csrf_token %}
+
+<div class="card card-custom mb-4">
+  <div class="card-header-custom">
+    <div class="card-header-title"><i class="bi bi-file-earmark-text"></i> Dados da Nota Fiscal</div>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Número <span class="text-danger">*</span></label>
+        {{ form.numero }}
+        {% if form.numero.errors %}<div class="invalid-feedback d-block">{{ form.numero.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-semibold">Série</label>
+        {{ form.serie }}
+        {% if form.serie.errors %}<div class="invalid-feedback d-block">{{ form.serie.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-7">
+        <label class="form-label fw-semibold">Fornecedor <span class="text-danger">*</span></label>
+        {{ form.fornecedor }}
+        {% if form.fornecedor.errors %}<div class="invalid-feedback d-block">{{ form.fornecedor.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Data de Emissão <span class="text-danger">*</span></label>
+        {{ form.data_emissao }}
+        {% if form.data_emissao.errors %}<div class="invalid-feedback d-block">{{ form.data_emissao.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Data de Vencimento <span class="text-danger">*</span></label>
+        {{ form.data_vencimento }}
+        {% if form.data_vencimento.errors %}<div class="invalid-feedback d-block">{{ form.data_vencimento.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Valor Total <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text">R$</span>
+          {{ form.valor_total }}
+        </div>
+        {% if form.valor_total.errors %}<div class="invalid-feedback d-block">{{ form.valor_total.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Status</label>
+        {{ form.status }}
+        {% if form.status.errors %}<div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold">Observações</label>
+        {{ form.observacoes }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Itens da Nota -->
+<div class="card card-custom mb-4">
+  <div class="card-header-custom">
+    <div class="card-header-title"><i class="bi bi-list-ul"></i> Itens da Nota Fiscal</div>
+    <button type="button" class="btn btn-sm btn-outline-primary" id="add-item">
+      <i class="bi bi-plus-lg me-1"></i>Adicionar Item
+    </button>
+  </div>
+  <div class="card-body p-0">
+    {{ formset.management_form }}
+    <div class="table-responsive">
+      <table class="table table-custom mb-0" id="itens-table">
+        <thead>
+          <tr>
+            <th style="width:25%">Produto</th>
+            <th style="width:30%">Descrição</th>
+            <th style="width:15%">Qtd</th>
+            <th style="width:15%">Valor Unit.</th>
+            <th style="width:10%">Total</th>
+            <th style="width:5%"></th>
+          </tr>
+        </thead>
+        <tbody id="itens-tbody">
+          {% for item_form in formset %}
+          <tr class="item-row">
+            <td>{{ item_form.produto }}{{ item_form.id }}{% if item_form.DELETE %}{{ item_form.DELETE }}{% endif %}</td>
+            <td>{{ item_form.descricao }}</td>
+            <td>{{ item_form.quantidade }}</td>
+            <td>{{ item_form.valor_unitario }}</td>
+            <td class="item-total fw-semibold text-end pe-3">-</td>
+            <td>
+              <button type="button" class="btn btn-xs btn-outline-danger remove-item" title="Remover">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="table-light">
+            <td colspan="4" class="text-end fw-bold pe-3">Total dos Itens:</td>
+            <td class="fw-bold text-end pe-3" id="total-itens">R$ 0,00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar Nota Fiscal</button>
+  <a href="{% url 'notas:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Template para nova linha
+const totalForms = document.getElementById('id_itens-TOTAL_FORMS');
+let formCount = parseInt(totalForms.value);
+
+document.getElementById('add-item').addEventListener('click', function() {
+  const tbody = document.getElementById('itens-tbody');
+  const firstRow = tbody.querySelector('.item-row');
+  if (!firstRow) return;
+  const newRow = firstRow.cloneNode(true);
+  newRow.querySelectorAll('input, select').forEach(el => {
+    const name = el.name.replace(/-\d+-/, `-${formCount}-`);
+    const id = el.id.replace(/-\d+-/, `-${formCount}-`);
+    el.name = name;
+    el.id = id;
+    if (el.type !== 'hidden') el.value = '';
+    if (el.type === 'checkbox') el.checked = false;
+  });
+  newRow.querySelectorAll('label').forEach(el => {
+    const f = el.htmlFor.replace(/-\d+-/, `-${formCount}-`);
+    el.htmlFor = f;
+  });
+  newRow.querySelector('.item-total').textContent = '-';
+  tbody.appendChild(newRow);
+  formCount++;
+  totalForms.value = formCount;
+  bindItemEvents(newRow);
+});
+
+function bindItemEvents(row) {
+  row.querySelector('.remove-item').addEventListener('click', function() {
+    const deleteInput = row.querySelector('input[name$="-DELETE"]');
+    if (deleteInput) {
+      deleteInput.checked = true;
+      row.style.display = 'none';
+    } else {
+      row.remove();
+    }
+    calcTotal();
+  });
+  ['quantidade', 'valor_unitario'].forEach(field => {
+    const input = row.querySelector(`input[name$="-${field}"]`);
+    if (input) input.addEventListener('input', () => updateItemTotal(row));
+  });
+}
+
+function updateItemTotal(row) {
+  const qty = parseFloat(row.querySelector('input[name$="-quantidade"]')?.value || 0);
+  const unit = parseFloat(row.querySelector('input[name$="-valor_unitario"]')?.value || 0);
+  const total = qty * unit;
+  row.querySelector('.item-total').textContent = isNaN(total) ? '-' : 'R$ ' + total.toFixed(2).replace('.', ',');
+  calcTotal();
+}
+
+function calcTotal() {
+  let sum = 0;
+  document.querySelectorAll('.item-row').forEach(row => {
+    if (row.style.display === 'none') return;
+    const qty = parseFloat(row.querySelector('input[name$="-quantidade"]')?.value || 0);
+    const unit = parseFloat(row.querySelector('input[name$="-valor_unitario"]')?.value || 0);
+    if (!isNaN(qty) && !isNaN(unit)) sum += qty * unit;
+  });
+  document.getElementById('total-itens').textContent = 'R$ ' + sum.toFixed(2).replace('.', ',');
+}
+
+document.querySelectorAll('.item-row').forEach(row => bindItemEvents(row));
+calcTotal();
+</script>
+{% endblock %}

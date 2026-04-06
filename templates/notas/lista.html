@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Notas Fiscais{% endblock %}
+{% block page_title %}Notas Fiscais{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notas Fiscais</h1>
+    <p class="page-subtitle">{{ notas|length }} nota{{ notas|length|pluralize }} encontrada{{ notas|length|pluralize }}</p>
+  </div>
+  <a href="{% url 'notas:novo' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i>Nova Nota
+  </a>
+</div>
+
+<div class="filter-bar mb-3">
+  <form method="get" id="filter-form">
+    <div class="filter-bar-inner filter-bar-wide">
+      <div class="search-field">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="busca" id="search-input"
+               value="{{ form_filtro.busca.value|default:'' }}"
+               class="search-input" placeholder="Número, fornecedor…" autocomplete="off">
+        {% if form_filtro.busca.value %}<a href="{% url 'notas:lista' %}" class="search-clear"><i class="bi bi-x-lg"></i></a>{% endif %}
+      </div>
+      <select name="status" class="filter-select" id="filter-status">
+        <option value="">Todos os status</option>
+        <option value="pendente" {% if form_filtro.status.value == 'pendente' %}selected{% endif %}>Pendente</option>
+        <option value="paga"     {% if form_filtro.status.value == 'paga'     %}selected{% endif %}>Paga</option>
+        <option value="vencida"  {% if form_filtro.status.value == 'vencida'  %}selected{% endif %}>Vencida</option>
+        <option value="cancelada"{% if form_filtro.status.value == 'cancelada'%}selected{% endif %}>Cancelada</option>
+      </select>
+      <input type="date" name="data_inicio" class="filter-date"
+             value="{{ form_filtro.data_inicio.value|default:'' }}"
+             title="De" onchange="this.form.submit()">
+      <input type="date" name="data_fim" class="filter-date"
+             value="{{ form_filtro.data_fim.value|default:'' }}"
+             title="Até" onchange="this.form.submit()">
+    </div>
+  </form>
+</div>
+
+<div class="card-custom">
+  <div class="card-body p-0">
+    {% if notas %}
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Nº / Série</th>
+            <th>Fornecedor</th>
+            <th>Emissão</th>
+            <th>Vencimento</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Saldo</th>
+            <th>Status</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          {% for nota in notas %}
+          <tr>
+            <td>
+              <a href="{% url 'notas:detalhe' nota.pk %}" class="fw-semibold link-dark">{{ nota.numero }}</a>
+              <div class="text-sm text-muted">Série {{ nota.serie }}</div>
+            </td>
+            <td class="text-sm">{{ nota.fornecedor.nome_fantasia }}</td>
+            <td class="text-sm">{{ nota.data_emissao|date:"d/m/Y" }}</td>
+            <td class="text-sm">{{ nota.data_vencimento|date:"d/m/Y" }}</td>
+            <td class="text-end fw-semibold text-sm">R$ {{ nota.valor_total|floatformat:2 }}</td>
+            <td class="text-end text-sm">
+              {% if nota.saldo_devedor > 0 %}
+                <span class="text-danger fw-semibold">R$ {{ nota.saldo_devedor|floatformat:2 }}</span>
+              {% else %}
+                <span class="text-success"><i class="bi bi-check-circle-fill"></i> Quitado</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if nota.status == 'paga' %}<span class="badge-status badge-paga">Paga</span>
+              {% elif nota.status == 'vencida' %}<span class="badge-status badge-vencida">Vencida</span>
+              {% elif nota.status == 'cancelada' %}<span class="badge-status badge-cancelada">Cancelada</span>
+              {% else %}<span class="badge-status badge-pendente">Pendente</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <a href="{% url 'notas:detalhe' nota.pk %}" class="btn btn-xs btn-outline-secondary" title="Ver">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'notas:editar' nota.pk %}" class="btn btn-xs btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="empty-filter-msg" style="display:none;">
+      <div class="empty-state py-4"><i class="bi bi-search"></i><p>Nenhuma nota corresponde à busca</p></div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-file-earmark-x"></i><p>Nenhuma nota fiscal encontrada</p>
+      <a href="{% url 'notas:novo' %}" class="btn btn-primary btn-sm mt-3"><i class="bi bi-plus-lg"></i>Nova Nota Fiscal</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script>setupLiveSearch('search-input','table-body','filter-form','empty-filter-msg','filter-status');</script>{% endblock %}

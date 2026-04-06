@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+    <p class="page-subtitle">Preencha os dados do produto</p>
+  </div>
+  <a href="{% url 'produtos:lista' %}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left"></i>Voltar</a>
+</div>
+
+<form method="post" novalidate>
+{% csrf_token %}
+
+<div class="form-section mb-3">
+  <div class="form-section-header"><i class="bi bi-box-seam"></i>Dados Gerais</div>
+  <div class="form-section-body">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <div class="field-group">
+          <label class="field-label">Nome do Produto <span class="req">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<p class="field-error">{{ form.nome.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">Unidade de Medida <span class="req">*</span></label>
+          {{ form.unidade_medida }}
+          {% if form.unidade_medida.errors %}<p class="field-error">{{ form.unidade_medida.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">Preço de Custo</label>
+          <div class="input-prefix"><span>R$</span>{{ form.preco_custo }}</div>
+          {% if form.preco_custo.errors %}<p class="field-error">{{ form.preco_custo.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">Preço de Venda</label>
+          <div class="input-prefix"><span>R$</span>{{ form.preco_venda }}</div>
+          {% if form.preco_venda.errors %}<p class="field-error">{{ form.preco_venda.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">Estoque Atual</label>
+          {{ form.estoque_atual }}
+          {% if form.estoque_atual.errors %}<p class="field-error">{{ form.estoque_atual.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">Estoque Mínimo</label>
+          {{ form.estoque_minimo }}
+          {% if form.estoque_minimo.errors %}<p class="field-error">{{ form.estoque_minimo.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-section mb-3">
+  <div class="form-section-header"><i class="bi bi-receipt"></i>Dados Fiscais</div>
+  <div class="form-section-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">NCM</label>
+          {{ form.ncm }}
+          <p class="field-hint">Ex: 7307.19.00</p>
+          {% if form.ncm.errors %}<p class="field-error">{{ form.ncm.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">CEST</label>
+          {{ form.cest }}
+          <p class="field-hint">Ex: 10.001.00</p>
+          {% if form.cest.errors %}<p class="field-error">{{ form.cest.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="field-group">
+          <label class="field-label">Origem da Mercadoria</label>
+          {{ form.origem }}
+          {% if form.origem.errors %}<p class="field-error">{{ form.origem.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="col-12"><div class="section-divider-label">Alíquotas</div></div>
+
+      <div class="col-6 col-md-3">
+        <div class="field-group">
+          <label class="field-label">ICMS (%)</label>
+          <div class="input-suffix">{{ form.aliquota_icms }}<span>%</span></div>
+          {% if form.aliquota_icms.errors %}<p class="field-error">{{ form.aliquota_icms.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="field-group">
+          <label class="field-label">IPI (%)</label>
+          <div class="input-suffix">{{ form.aliquota_ipi }}<span>%</span></div>
+          {% if form.aliquota_ipi.errors %}<p class="field-error">{{ form.aliquota_ipi.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="field-group">
+          <label class="field-label">PIS (%)</label>
+          <div class="input-suffix">{{ form.aliquota_pis }}<span>%</span></div>
+          {% if form.aliquota_pis.errors %}<p class="field-error">{{ form.aliquota_pis.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="field-group">
+          <label class="field-label">COFINS (%)</label>
+          <div class="input-suffix">{{ form.aliquota_cofins }}<span>%</span></div>
+          {% if form.aliquota_cofins.errors %}<p class="field-error">{{ form.aliquota_cofins.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-section mb-4">
+  <div class="form-section-header"><i class="bi bi-toggles"></i>Configurações</div>
+  <div class="form-section-body">
+    <label class="toggle-label">
+      {{ form.ativo }}
+      <span class="toggle-text">
+        <strong>Produto ativo</strong>
+        <small>Produtos inativos não aparecem ao cadastrar itens de nota</small>
+      </span>
+    </label>
+  </div>
+</div>
+
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i>Salvar Produto</button>
+  <a href="{% url 'produtos:lista' %}" class="btn btn-ghost btn-sm">Cancelar</a>
+</div>
+</form>
+{% endblock %}

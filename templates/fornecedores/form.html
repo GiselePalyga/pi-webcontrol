@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+    <p class="page-subtitle">Preencha os dados do fornecedor</p>
+  </div>
+  <a href="{% url 'fornecedores:lista' %}" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-left"></i>Voltar</a>
+</div>
+
+<form method="post" novalidate>
+{% csrf_token %}
+
+<div class="form-section mb-3">
+  <div class="form-section-header"><i class="bi bi-building"></i>Dados da Empresa</div>
+  <div class="form-section-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">CNPJ <span class="req">*</span></label>
+          <div class="input-action">
+            {{ form.cnpj }}
+            <button type="button" class="btn-lookup" id="btn-cnpj-lookup" title="Consultar CNPJ">
+              <i class="bi bi-search" id="cnpj-lookup-icon"></i>
+            </button>
+          </div>
+          <p class="field-hint" id="cnpj-msg"></p>
+          {% if form.cnpj.errors %}<p class="field-error">{{ form.cnpj.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">Nome Fantasia <span class="req">*</span></label>
+          {{ form.nome_fantasia }}
+          {% if form.nome_fantasia.errors %}<p class="field-error">{{ form.nome_fantasia.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">Razão Social</label>
+          {{ form.razao_social }}
+          {% if form.razao_social.errors %}<p class="field-error">{{ form.razao_social.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">Telefone</label>
+          {{ form.telefone }}
+          {% if form.telefone.errors %}<p class="field-error">{{ form.telefone.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="field-group">
+          <label class="field-label">E-mail</label>
+          {{ form.email }}
+          {% if form.email.errors %}<p class="field-error">{{ form.email.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-section mb-3">
+  <div class="form-section-header">
+    <i class="bi bi-geo-alt"></i>Endereço
+    <span class="form-section-hint">— CEP preenche automaticamente</span>
+  </div>
+  <div class="form-section-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">CEP</label>
+          <div class="input-with-icon">
+            {{ form.cep }}
+            <span class="input-spinner" id="cep-spinner" style="display:none;">
+              <i class="bi bi-arrow-repeat spin"></i>
+            </span>
+          </div>
+          <p class="field-hint" id="cep-msg"></p>
+          {% if form.cep.errors %}<p class="field-error">{{ form.cep.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="field-group">
+          <label class="field-label">Logradouro</label>
+          {{ form.logradouro }}
+          {% if form.logradouro.errors %}<p class="field-error">{{ form.logradouro.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">Número</label>
+          {{ form.numero }}
+          {% if form.numero.errors %}<p class="field-error">{{ form.numero.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="field-group">
+          <label class="field-label">Bairro</label>
+          {{ form.bairro }}
+          {% if form.bairro.errors %}<p class="field-error">{{ form.bairro.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="field-group">
+          <label class="field-label">Cidade</label>
+          {{ form.cidade }}
+          {% if form.cidade.errors %}<p class="field-error">{{ form.cidade.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="field-group">
+          <label class="field-label">UF</label>
+          {{ form.uf }}
+          {% if form.uf.errors %}<p class="field-error">{{ form.uf.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-section mb-4">
+  <div class="form-section-header"><i class="bi bi-toggles"></i>Configurações</div>
+  <div class="form-section-body">
+    <label class="toggle-label">
+      {{ form.ativo }}
+      <span class="toggle-text">
+        <strong>Fornecedor ativo</strong>
+        <small>Fornecedores inativos não aparecem ao cadastrar notas</small>
+      </span>
+    </label>
+  </div>
+</div>
+
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i>Salvar Fornecedor</button>
+  <a href="{% url 'fornecedores:lista' %}" class="btn btn-ghost btn-sm">Cancelar</a>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── CNPJ Lookup (publica.cnpj.ws) ─────────────────────────────
+document.getElementById('btn-cnpj-lookup').addEventListener('click', function () {
+  const cnpj = document.getElementById('id_cnpj').value.replace(/\D/g, '');
+  const icon = document.getElementById('cnpj-lookup-icon');
+  const msg  = document.getElementById('cnpj-msg');
+
+  if (cnpj.length !== 14) {
+    msg.textContent = 'Digite o CNPJ completo antes de consultar.';
+    msg.className = 'field-error';
+    return;
+  }
+
+  icon.className = 'bi bi-arrow-repeat spin';
+  this.disabled = true;
+  msg.textContent = 'Consultando…';
+  msg.className = 'field-hint';
+
+  fetch(`https://publica.cnpj.ws/cnpj/${cnpj}`)
+    .then(r => { if (!r.ok) throw new Error('not_found'); return r.json(); })
+    .then(data => {
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+
+      set('id_razao_social',  data.razao_social);
+      set('id_nome_fantasia', data.nome_fantasia || data.razao_social);
+      set('id_email',         data.email);
+
+      // Telefone: concatena DDD + número
+      const ddd = data.ddd_telefone_1 || '';
+      const tel = ddd.replace(/\D/g, '');
+      if (tel) document.getElementById('id_telefone').value = maskTelefone(tel);
+
+      // Endereço
+      const end = data.estabelecimento || {};
+      const cepRaw = (end.cep || '').replace(/\D/g, '');
+      if (cepRaw) {
+        document.getElementById('id_cep').value = maskCEP(cepRaw);
+        // Busca complemento via ViaCEP
+        fetch(`https://viacep.com.br/ws/${cepRaw}/json/`)
+          .then(r => r.json())
+          .then(v => {
+            if (!v.erro) {
+              set('id_logradouro', v.logradouro);
+              set('id_bairro',     v.bairro);
+              set('id_cidade',     v.localidade);
+              set('id_uf',         v.uf);
+            }
+          }).catch(() => {});
+      }
+      set('id_numero', end.numero);
+
+      msg.textContent = 'Dados preenchidos com sucesso!';
+      msg.className = 'field-hint field-hint-ok';
+    })
+    .catch(err => {
+      msg.textContent = err.message === 'not_found'
+        ? 'CNPJ não encontrado na base pública.'
+        : 'Erro ao consultar. Verifique sua conexão.';
+      msg.className = 'field-error';
+    })
+    .finally(() => {
+      icon.className = 'bi bi-search';
+      document.getElementById('btn-cnpj-lookup').disabled = false;
+    });
+});
+
+// ── CEP lookup ────────────────────────────────────────────────
+document.getElementById('id_cep').addEventListener('blur', function () {
+  const cep = this.value.replace(/\D/g, '');
+  if (cep.length !== 8) return;
+  const spinner = document.getElementById('cep-spinner');
+  const msg     = document.getElementById('cep-msg');
+  spinner.style.display = 'flex';
+  msg.textContent = '';
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(r => r.json())
+    .then(data => {
+      spinner.style.display = 'none';
+      if (data.erro) { msg.textContent = 'CEP não encontrado.'; msg.className = 'field-error'; return; }
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+      set('id_logradouro', data.logradouro);
+      set('id_bairro',     data.bairro);
+      set('id_cidade',     data.localidade);
+      set('id_uf',         data.uf);
+      document.getElementById('id_numero').focus();
+      msg.textContent = 'Endereço preenchido.';
+      msg.className = 'field-hint field-hint-ok';
+    })
+    .catch(() => { spinner.style.display = 'none'; msg.textContent = 'Erro ao buscar CEP.'; msg.className = 'field-error'; });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Produtos{% endblock %}
+{% block page_title %}Produtos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Produtos</h1>
+    <p class="page-subtitle">{{ produtos|length }} produto{{ produtos|length|pluralize }} encontrado{{ produtos|length|pluralize }}</p>
+  </div>
+  <a href="{% url 'produtos:novo' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i>Novo
+  </a>
+</div>
+
+<div class="filter-bar mb-3">
+  <form method="get" id="filter-form">
+    <div class="filter-bar-inner">
+      <div class="search-field">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="busca" id="search-input" value="{{ busca }}"
+               class="search-input" placeholder="Buscar produto…" autocomplete="off">
+        {% if busca %}<a href="{% url 'produtos:lista' %}" class="search-clear" title="Limpar">
+          <i class="bi bi-x-lg"></i></a>{% endif %}
+      </div>
+      <select name="ativo" class="filter-select" id="filter-ativo">
+        <option value="">Todos</option>
+        <option value="1" {% if ativo == "1" %}selected{% endif %}>Ativos</option>
+        <option value="0" {% if ativo == "0" %}selected{% endif %}>Inativos</option>
+      </select>
+    </div>
+  </form>
+</div>
+
+<div class="card-custom">
+  <div class="card-body p-0">
+    {% if produtos %}
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>NCM</th>
+            <th>Unidade</th>
+            <th class="text-end">Custo</th>
+            <th class="text-end">Venda</th>
+            <th class="text-end">Estoque</th>
+            <th>Status</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          {% for p in produtos %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ p.nome }}</div>
+              {% if p.cest %}<div class="text-sm text-muted">CEST {{ p.cest }}</div>{% endif %}
+            </td>
+            <td class="font-monospace text-sm">{{ p.ncm|default:"—" }}</td>
+            <td class="text-sm">{{ p.get_unidade_medida_display }}</td>
+            <td class="text-end text-sm">R$ {{ p.preco_custo|floatformat:2 }}</td>
+            <td class="text-end fw-semibold">R$ {{ p.preco_venda|floatformat:2 }}</td>
+            <td class="text-end">
+              {% if p.estoque_baixo %}
+                <span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ p.estoque_atual }}</span>
+              {% else %}
+                <span class="text-sm">{{ p.estoque_atual }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.ativo %}<span class="badge-status badge-paga">Ativo</span>
+              {% else %}<span class="badge-status badge-cancelada">Inativo</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <a href="{% url 'produtos:editar' p.pk %}" class="btn btn-xs btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'produtos:toggle' p.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-xs {% if p.ativo %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                          onclick="return confirm('Confirma a alteração?')">
+                    <i class="bi {% if p.ativo %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="empty-filter-msg" id="empty-filter-msg" style="display:none;">
+      <div class="empty-state py-4"><i class="bi bi-search"></i><p>Nenhum produto corresponde à busca</p></div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-box-seam"></i><p>Nenhum produto cadastrado</p>
+      <a href="{% url 'produtos:novo' %}" class="btn btn-primary btn-sm mt-3"><i class="bi bi-plus-lg"></i>Cadastrar Produto</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script>setupLiveSearch('search-input','table-body','filter-form','empty-filter-msg','filter-ativo');</script>{% endblock %}

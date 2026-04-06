@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Fornecedores{% endblock %}
+{% block page_title %}Fornecedores{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Fornecedores</h1>
+    <p class="page-subtitle">{{ fornecedores|length }} fornecedor{{ fornecedores|length|pluralize }} encontrado{{ fornecedores|length|pluralize }}</p>
+  </div>
+  <a href="{% url 'fornecedores:novo' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i>Novo
+  </a>
+</div>
+
+<div class="filter-bar mb-3">
+  <form method="get" id="filter-form">
+    <div class="filter-bar-inner">
+      <div class="search-field">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="busca" id="search-input" value="{{ busca }}"
+               class="search-input" placeholder="Buscar por nome, razão social ou CNPJ…"
+               autocomplete="off">
+        {% if busca %}<a href="{% url 'fornecedores:lista' %}" class="search-clear" title="Limpar">
+          <i class="bi bi-x-lg"></i></a>{% endif %}
+      </div>
+      <select name="ativo" class="filter-select" id="filter-ativo">
+        <option value="">Todos</option>
+        <option value="1" {% if ativo == "1" %}selected{% endif %}>Ativos</option>
+        <option value="0" {% if ativo == "0" %}selected{% endif %}>Inativos</option>
+      </select>
+    </div>
+  </form>
+</div>
+
+<div class="card-custom">
+  <div class="card-body p-0">
+    {% if fornecedores %}
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Fornecedor</th>
+            <th>CNPJ</th>
+            <th>Cidade / UF</th>
+            <th>Contato</th>
+            <th>Status</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          {% for f in fornecedores %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ f.nome_fantasia }}</div>
+              {% if f.razao_social %}<div class="text-sm text-muted">{{ f.razao_social }}</div>{% endif %}
+            </td>
+            <td class="font-monospace text-sm">{{ f.cnpj }}</td>
+            <td class="text-sm">{{ f.cidade }}{% if f.cidade and f.uf %}/{% endif %}{{ f.uf }}</td>
+            <td>
+              {% if f.email %}<div class="text-sm">{{ f.email }}</div>{% endif %}
+              {% if f.telefone %}<div class="text-sm text-muted">{{ f.telefone }}</div>{% endif %}
+            </td>
+            <td>
+              {% if f.ativo %}<span class="badge-status badge-paga">Ativo</span>
+              {% else %}<span class="badge-status badge-cancelada">Inativo</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <a href="{% url 'fornecedores:editar' f.pk %}" class="btn btn-xs btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'fornecedores:toggle' f.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-xs {% if f.ativo %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                          onclick="return confirm('Confirma a alteração?')" title="{% if f.ativo %}Inativar{% else %}Ativar{% endif %}">
+                    <i class="bi {% if f.ativo %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="empty-filter-msg" id="empty-filter-msg" style="display:none;">
+      <div class="empty-state py-4">
+        <i class="bi bi-search"></i>
+        <p>Nenhum fornecedor corresponde à busca</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-building-x"></i>
+      <p>Nenhum fornecedor cadastrado</p>
+      <a href="{% url 'fornecedores:novo' %}" class="btn btn-primary btn-sm mt-3">
+        <i class="bi bi-plus-lg"></i>Cadastrar Fornecedor
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script>setupLiveSearch('search-input','table-body','filter-form','empty-filter-msg','filter-ativo');</script>{% endblock %}

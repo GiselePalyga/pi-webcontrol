@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Painel Geral</h1>
+    <p class="page-subtitle">Resumo financeiro — atualizado em tempo real</p>
+  </div>
+  <a href="{% url 'notas:novo' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i>Nova Nota Fiscal
+  </a>
+</div>
+
+<!-- Cards de Resumo -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-card-warning">
+      <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="stat-info">
+        <span class="stat-label">A Pagar</span>
+        <span class="stat-value">R$&nbsp;{{ total_pendente|floatformat:2 }}</span>
+        <span class="stat-count">{{ count_pendente }} nota{{ count_pendente|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-card-danger">
+      <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+      <div class="stat-info">
+        <span class="stat-label">Vencido</span>
+        <span class="stat-value">R$&nbsp;{{ total_vencido|floatformat:2 }}</span>
+        <span class="stat-count">{{ count_vencida }} nota{{ count_vencida|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-card-success">
+      <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+      <div class="stat-info">
+        <span class="stat-label">Pago (mês)</span>
+        <span class="stat-value">R$&nbsp;{{ total_pago_mes|floatformat:2 }}</span>
+        <span class="stat-count">{{ count_paga }} nota{{ count_paga|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-card-primary">
+      <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="stat-info">
+        <span class="stat-label">Total de Notas</span>
+        <span class="stat-value">{{ count_pendente|add:count_vencida|add:count_paga }}</span>
+        <span class="stat-count">no sistema</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Próximos Vencimentos -->
+  <div class="col-12 col-lg-6">
+    <div class="card-custom h-100">
+      <div class="card-header-custom">
+        <div class="card-header-title">
+          <i class="bi bi-calendar-x"></i>Próximos Vencimentos
+        </div>
+        <a href="{% url 'notas:lista' %}?status=pendente" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        {% if proximos_vencimentos %}
+          <div class="table-responsive">
+            <table class="table table-custom mb-0">
+              <thead>
+                <tr>
+                  <th>Nota / Fornecedor</th>
+                  <th>Vencimento</th>
+                  <th class="text-end">Saldo</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for nota in proximos_vencimentos %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold" style="font-size:13.5px;">NF {{ nota.numero }}</div>
+                    <div class="text-muted" style="font-size:12px;">{{ nota.fornecedor.nome_fantasia }}</div>
+                  </td>
+                  <td>
+                    {% if nota.data_vencimento < hoje %}
+                      <span class="badge-status badge-vencida">{{ nota.data_vencimento|date:"d/m/Y" }}</span>
+                    {% else %}
+                      <span style="font-size:13px;">{{ nota.data_vencimento|date:"d/m/Y" }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end fw-semibold">R$ {{ nota.saldo_devedor|floatformat:2 }}</td>
+                  <td>
+                    <a href="{% url 'notas:detalhe' nota.pk %}" class="btn btn-xs btn-outline-secondary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-calendar-check"></i>
+            <p>Nenhum vencimento pendente</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimas Notas -->
+  <div class="col-12 col-lg-6">
+    <div class="card-custom h-100">
+      <div class="card-header-custom">
+        <div class="card-header-title">
+          <i class="bi bi-clock"></i>Últimas Notas Cadastradas
+        </div>
+        <a href="{% url 'notas:novo' %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus-lg"></i>Nova Nota
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if ultimas_notas %}
+          <div class="table-responsive">
+            <table class="table table-custom mb-0">
+              <thead>
+                <tr>
+                  <th>Nota / Fornecedor</th>
+                  <th class="text-end">Valor</th>
+                  <th class="text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for nota in ultimas_notas %}
+                <tr>
+                  <td>
+                    <a href="{% url 'notas:detalhe' nota.pk %}" class="fw-semibold text-decoration-none" style="font-size:13.5px; color:inherit;">
+                      NF {{ nota.numero }}
+                    </a>
+                    <div class="text-muted" style="font-size:12px;">{{ nota.fornecedor.nome_fantasia }}</div>
+                  </td>
+                  <td class="text-end fw-semibold">R$ {{ nota.valor_total|floatformat:2 }}</td>
+                  <td class="text-center">
+                    {% if nota.status == 'paga' %}<span class="badge-status badge-paga">Paga</span>
+                    {% elif nota.status == 'vencida' %}<span class="badge-status badge-vencida">Vencida</span>
+                    {% elif nota.status == 'cancelada' %}<span class="badge-status badge-cancelada">Cancelada</span>
+                    {% else %}<span class="badge-status badge-pendente">Pendente</span>{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-file-earmark-x"></i>
+            <p>Nenhuma nota cadastrada ainda</p>
+            <a href="{% url 'notas:novo' %}" class="btn btn-primary btn-sm mt-3">
+              <i class="bi bi-plus-lg"></i>Cadastrar primeira nota
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
