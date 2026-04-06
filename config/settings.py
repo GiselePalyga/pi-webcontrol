@@ -9,14 +9,15 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*").split(",")
 
-_csrf_env = config("CSRF_TRUSTED_ORIGINS", default="")
-if _csrf_env:
-    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_env.split(",") if o.strip()]
-else:
-    # Auto-build from ALLOWED_HOSTS when env var not set
-    CSRF_TRUSTED_ORIGINS = [
-        f"https://{h}" for h in ALLOWED_HOSTS if h not in ("*", "localhost", "127.0.0.1")
-    ] + ["http://localhost:8000", "http://127.0.0.1:8000"]
+# Auto-build from ALLOWED_HOSTS + optional extra origins via env
+_csrf_extra = [o.strip() for o in config("CSRF_TRUSTED_ORIGINS", default="").split(",") if o.strip()]
+CSRF_TRUSTED_ORIGINS = list({
+    *[f"https://{h}" for h in ALLOWED_HOSTS if h not in ("*", "localhost", "127.0.0.1")],
+    *[f"http://{h}" for h in ALLOWED_HOSTS if h not in ("*", "localhost", "127.0.0.1")],
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    *_csrf_extra,
+})
 
 # Proxy reverso (EasyPanel, Nginx, Traefik, etc.)
 USE_X_FORWARDED_HOST = True
