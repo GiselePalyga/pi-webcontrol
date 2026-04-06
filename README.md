@@ -269,30 +269,118 @@ pi-univesp/
 
 ## Banco de Dados
 
-O sistema utiliza **SQLite 3** gerenciado pelo Django ORM. O arquivo `db.sqlite3` é armazenado em `/app/database/` dentro do container e persistido via volume Docker nomeado `db_data` — os dados não são perdidos ao recriar o container.
+### Tecnologia e Justificativa
 
-### Modelo de Dados
+O sistema utiliza **SQLite 3** como banco de dados relacional, gerenciado pelo **Django ORM** através de migrations. A escolha é adequada ao perfil do projeto:
+
+- **Instalação zero** — não requer servidor de banco de dados separado
+- **Portabilidade** — banco é um único arquivo (`db.sqlite3`)
+- **Persistência garantida** — montado via volume Docker nomeado `db_data`, os dados não são perdidos ao recriar o container
+- **Escalabilidade** — a troca para PostgreSQL ou MySQL exige apenas alterar `DATABASES` em `settings.py`; o ORM abstrai o banco e nenhum código de aplicação precisa mudar
+
+### Diagrama Entidade-Relacionamento
+
+```
+┌─────────────────────────┐
+│       Fornecedor        │
+│  PK id                  │
+│     nome_fantasia        │
+│     cnpj (único)         │
+│     telefone / email     │
+│     endereço completo    │
+│     ativo                │
+└────────────┬────────────┘
+             │ 1 (PROTECT)
+             │
+             │ N
+┌────────────▼────────────┐         ┌─────────────────────────┐
+│       NotaFiscal        │         │        Produto          │
+│  PK id                  │         │  PK id                  │
+│  FK fornecedor_id       │         │     nome                │
+│     numero              │         │     preco_custo         │
+│     serie               │         │     preco_venda         │
+│     data_emissao        │         │     estoque_atual       │
+│     data_vencimento     │         │     estoque_minimo      │
+│     valor_total         │         │     ncm / cest / origem │
+│     status              │         │     aliquotas           │
+│  UNIQUE(num,serie,forn) │         │     ativo               │
+└──────┬──────────────────┘         └──────────┬──────────────┘
+       │ 1 (CASCADE)    │ 1 (CASCADE)           │ 1 (PROTECT)
+       │                │                       │
+       │ N              │ N                     │ N
+┌──────▼──────┐   ┌─────▼────────────────┐     │
+│  Pagamento  │   │   ItemNotaFiscal     │◄────┘
+│  PK id      │   │  PK id              │ FK produto_id (nullable)
+│  FK nota_id │   │  FK nota_fiscal_id  │
+│  data_pag.  │   │  FK produto_id      │
+│  valor_pago │   │  descricao          │
+│  forma_pag. │   │  quantidade         │
+└─────────────┘   │  valor_unitario     │
+                  │  valor_total (calc) │
+                  └─────────────────────┘
+```
+
+### Tabelas
 
 | Tabela | Descrição |
 |--------|-----------|
-| `fornecedores_fornecedor` | Fornecedores com dados cadastrais e endereço |
-| `produtos_produto` | Produtos com preços, estoque e dados fiscais |
-| `notas_notafiscal` | Cabeçalho da nota fiscal |
-| `notas_itemnotafiscal` | Itens vinculados à nota (produto, qtd, preço) |
+| `fornecedores_fornecedor` | Fornecedores com dados cadastrais, CNPJ único e endereço |
+| `produtos_produto` | Produtos com preços, estoque e dados fiscais (NCM, CEST, alíquotas) |
+| `notas_notafiscal` | Cabeçalho da nota fiscal; status atualizado automaticamente |
+| `notas_itemnotafiscal` | Itens da nota; `valor_total` calculado automaticamente |
 | `financeiro_pagamento` | Pagamentos parciais ou totais por nota |
 
-### Relacionamentos
+### Integridade Referencial
 
+| Relação | Comportamento ao excluir |
+|---------|--------------------------|
+| Fornecedor → NotaFiscal | **PROTECT** — bloqueia exclusão se houver notas |
+| NotaFiscal → ItemNotaFiscal | **CASCADE** — remove itens junto com a nota |
+| NotaFiscal → Pagamento | **CASCADE** — remove pagamentos junto com a nota |
+| Produto → ItemNotaFiscal | **PROTECT** — bloqueia exclusão se usado em notas |
+
+### Índices
+
+Os seguintes índices foram criados para otimizar as consultas mais frequentes:
+
+| Índice | Coluna | Motivo |
+|--------|--------|--------|
+| `idx_nota_fornecedor` | `nota.fornecedor_id` | Join e filtro por fornecedor |
+| `idx_nota_status` | `nota.status` | Filtro do dashboard e alertas |
+| `idx_nota_vencimento` | `nota.data_vencimento` | Cálculo de alertas de vencimento |
+| `idx_item_nota` | `item.nota_fiscal_id` | Carregamento dos itens da nota |
+| `idx_pgto_nota` | `pagamento.nota_fiscal_id` | Cálculo do saldo devedor |
+
+### Regras de Negócio no Banco
+
+1. `UNIQUE(numero, serie, fornecedor_id)` — impede duplicidade de notas
+2. `ItemNotaFiscal.valor_total` é calculado automaticamente antes de salvar (`quantidade × valor_unitario`)
+3. Saldo devedor calculado em tempo real: `valor_total − SUM(pagamentos.valor_pago)`
+4. Status da nota atualizado automaticamente após cada pagamento
+5. Pagamento validado: `valor_pago ≤ saldo_devedor`
+
+### Migrations
+
+```bash
+# Ver estado das migrations
+docker compose exec web python manage.py showmigrations
+
+# Aplicar migrations pendentes
+docker compose exec web python manage.py migrate
 ```
-Fornecedor (1) ───── (N) NotaFiscal
-NotaFiscal (1) ───── (N) ItemNotaFiscal
-NotaFiscal (1) ───── (N) Pagamento
-Produto    (1) ───── (N) ItemNotaFiscal  [opcional]
+
+### Backup e Restore
+
+```bash
+# Backup
+docker compose cp web:/app/database/db.sqlite3 ./backup.sqlite3
+
+# Restore
+docker compose cp ./backup.sqlite3 web:/app/database/db.sqlite3
+docker compose restart web
 ```
 
-Documentação completa com diagrama ER, índices e regras de integridade: [`database/README.md`](database/README.md)
-
-Esquema SQL das tabelas: [`database/schema.sql`](database/schema.sql)
+Esquema SQL completo das tabelas: [`database/schema.sql`](database/schema.sql)
 
 ---
 
