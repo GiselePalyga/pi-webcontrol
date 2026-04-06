@@ -1,10 +1,11 @@
 from django import forms
 from .models import Produto
 
-_fc = "form-control"
-_fs = "form-select"
-_num = {"class": _fc, "step": "0.01", "min": "0"}
-_pct = {"class": _fc, "step": "0.01", "min": "0", "max": "100"}
+_fc  = "form-control"
+_fs  = "form-select"
+_dec = {"class": _fc, "data-mask": "decimal",    "placeholder": "0,00"}
+_pct = {"class": _fc, "data-mask": "decimal",    "placeholder": "0,00"}
+_qty = {"class": _fc, "data-mask": "quantidade", "placeholder": "0,000"}
 
 
 class ProdutoForm(forms.ModelForm):
@@ -18,18 +19,18 @@ class ProdutoForm(forms.ModelForm):
             "ativo",
         ]
         widgets = {
-            "nome":           forms.TextInput(attrs={"class": _fc, "placeholder": "Nome do produto"}),
-            "unidade_medida": forms.Select(attrs={"class": _fs}),
-            "preco_custo":    forms.NumberInput(attrs=_num),
-            "preco_venda":    forms.NumberInput(attrs=_num),
-            "estoque_atual":  forms.NumberInput(attrs={"class": _fc, "step": "0.001", "min": "0"}),
-            "estoque_minimo": forms.NumberInput(attrs={"class": _fc, "step": "0.001", "min": "0"}),
-            "ncm":            forms.TextInput(attrs={"class": _fc, "placeholder": "0000.00.00", "data-mask": "ncm", "maxlength": "10"}),
-            "cest":           forms.TextInput(attrs={"class": _fc, "placeholder": "00.000.00", "data-mask": "cest", "maxlength": "9"}),
-            "origem":         forms.Select(attrs={"class": _fs}),
-            "aliquota_icms":  forms.NumberInput(attrs=_pct),
-            "aliquota_ipi":   forms.NumberInput(attrs=_pct),
-            "aliquota_pis":   forms.NumberInput(attrs=_pct),
-            "aliquota_cofins":forms.NumberInput(attrs=_pct),
-            "ativo":          forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "nome":            forms.TextInput(attrs={"class": _fc, "placeholder": "Nome do produto"}),
+            "unidade_medida":  forms.Select(attrs={"class": _fs}),
+            "preco_custo":     forms.TextInput(attrs=_dec),
+            "preco_venda":     forms.TextInput(attrs=_dec),
+            "estoque_atual":   forms.TextInput(attrs=_qty),
+            "estoque_minimo":  forms.TextInput(attrs=_qty),
+            "ncm":             forms.TextInput(attrs={"class": _fc, "placeholder": "0000.00.00", "data-mask": "ncm", "maxlength": "10"}),
+            "cest":            forms.TextInput(attrs={"class": _fc, "placeholder": "00.000.00", "data-mask": "cest", "maxlength": "9"}),
+            "origem":          forms.Select(attrs={"class": _fs}),
+            "aliquota_icms":   forms.TextInput(attrs=_pct),
+            "aliquota_ipi":    forms.TextInput(attrs=_pct),
+            "aliquota_pis":    forms.TextInput(attrs=_pct),
+            "aliquota_cofins": forms.TextInput(attrs=_pct),
+            "ativo":           forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }

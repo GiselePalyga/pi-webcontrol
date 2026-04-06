@@ -184,13 +184,20 @@ function bindProdutoSelect(row) {
   });
 }
 
+// ── Helpers ────────────────────────────────────────────────────
+function parseVal(v) {
+  return parseFloat((v || '0').replace(',', '.')) || 0;
+}
+function fmtBR(n) {
+  return 'R$ ' + n.toFixed(2).replace('.', ',');
+}
+
 // ── Cálculo de totais ──────────────────────────────────────────
 function updateItemTotal(row) {
-  const qty  = parseFloat(row.querySelector('input[name$="-quantidade"]')?.value || 0);
-  const unit = parseFloat(row.querySelector('input[name$="-valor_unitario"]')?.value || 0);
+  const qty  = parseVal(row.querySelector('input[name$="-quantidade"]')?.value);
+  const unit = parseVal(row.querySelector('input[name$="-valor_unitario"]')?.value);
   const total = qty * unit;
-  row.querySelector('.item-total').textContent =
-    isNaN(total) ? '—' : 'R$ ' + total.toFixed(2).replace('.', ',');
+  row.querySelector('.item-total').textContent = total > 0 ? fmtBR(total) : '—';
   calcTotal();
 }
 
@@ -198,15 +205,14 @@ function calcTotal() {
   let sum = 0;
   document.querySelectorAll('.item-row').forEach(row => {
     if (row.style.display === 'none') return;
-    const qty  = parseFloat(row.querySelector('input[name$="-quantidade"]')?.value || 0);
-    const unit = parseFloat(row.querySelector('input[name$="-valor_unitario"]')?.value || 0);
-    if (!isNaN(qty) && !isNaN(unit)) sum += qty * unit;
+    const qty  = parseVal(row.querySelector('input[name$="-quantidade"]')?.value);
+    const unit = parseVal(row.querySelector('input[name$="-valor_unitario"]')?.value);
+    sum += qty * unit;
   });
-  document.getElementById('total-itens').textContent =
-    'R$ ' + sum.toFixed(2).replace('.', ',');
-  // Sincroniza campo valor_total da nota
+  document.getElementById('total-itens').textContent = fmtBR(sum);
+  // Sincroniza campo valor_total da nota (com vírgula, o JS converte antes do submit)
   const campoTotal = document.getElementById('id_valor_total');
-  if (campoTotal) campoTotal.value = sum.toFixed(2);
+  if (campoTotal) campoTotal.value = sum.toFixed(2).replace('.', ',');
 }
 
 // ── Bind eventos de cada linha ─────────────────────────────────

@@ -18,7 +18,7 @@ class NotaFiscalForm(forms.ModelForm):
             "fornecedor": forms.Select(attrs={"class": "form-select"}),
             "data_emissao": forms.DateInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}, format="%d/%m/%Y"),
             "data_vencimento": forms.DateInput(attrs={"class": "form-control", "placeholder": "dd/mm/aaaa", "data-mask": "data"}, format="%d/%m/%Y"),
-            "valor_total": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0.01"}),
+            "valor_total": forms.TextInput(attrs={"class": "form-control", "data-mask": "decimal", "placeholder": "0,00"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "observacoes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
@@ -43,8 +43,8 @@ class ItemNotaFiscalForm(forms.ModelForm):
         widgets = {
             "produto": forms.Select(attrs={"class": "form-select form-select-sm item-produto"}),
             "descricao": forms.TextInput(attrs={"class": "form-control form-control-sm", "placeholder": "Preenchido automaticamente"}),
-            "quantidade": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.001", "min": "0.001", "placeholder": "0"}),
-            "valor_unitario": forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.01", "min": "0.01", "placeholder": "0,00"}),
+            "quantidade": forms.TextInput(attrs={"class": "form-control form-control-sm", "data-mask": "quantidade", "placeholder": "0,000"}),
+            "valor_unitario": forms.TextInput(attrs={"class": "form-control form-control-sm", "data-mask": "decimal", "placeholder": "0,00"}),
         }
 
     def __init__(self, *args, **kwargs):
