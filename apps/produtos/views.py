@@ -47,7 +47,7 @@ def produto_json(request, pk):
     produto = get_object_or_404(Produto, pk=pk, ativo=True)
     return JsonResponse({
         "nome": produto.nome,
-        "preco_custo": str(produto.preco_custo),
+        "preco_venda": str(produto.preco_venda),
         "unidade_medida": produto.get_unidade_medida_display(),
     })
 

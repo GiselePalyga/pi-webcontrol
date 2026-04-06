@@ -115,7 +115,7 @@
             <td>
               {{ item_form.produto }}
               {{ item_form.id }}
-              {{ item_form.DELETE }}
+              <span style="display:none">{{ item_form.DELETE }}</span>
               {% if item_form.produto.errors %}<p class="field-error mt-1">{{ item_form.produto.errors.0 }}</p>{% endif %}
             </td>
             <td>
@@ -170,14 +170,14 @@ function bindProdutoSelect(row) {
   if (!sel) return;
   sel.addEventListener('change', function () {
     const pk = this.value;
-    const descInput = row.querySelector('input[name$="-descricao"]');
+    const descInput  = row.querySelector('input[name$="-descricao"]');
     const precoInput = row.querySelector('input[name$="-valor_unitario"]');
     if (!pk) return;
     fetch(PRODUTO_JSON_URL + pk + '/json/')
       .then(r => r.json())
       .then(data => {
-        if (descInput && !descInput.value) descInput.value = data.nome;
-        if (precoInput && !precoInput.value) precoInput.value = data.preco_custo;
+        if (descInput)  descInput.value  = data.nome;
+        if (precoInput) precoInput.value = data.preco_venda;
         updateItemTotal(row);
       })
       .catch(() => {});
@@ -204,6 +204,9 @@ function calcTotal() {
   });
   document.getElementById('total-itens').textContent =
     'R$ ' + sum.toFixed(2).replace('.', ',');
+  // Sincroniza campo valor_total da nota
+  const campoTotal = document.getElementById('id_valor_total');
+  if (campoTotal) campoTotal.value = sum.toFixed(2);
 }
 
 // ── Bind eventos de cada linha ─────────────────────────────────
