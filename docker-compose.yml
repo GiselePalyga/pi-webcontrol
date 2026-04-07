@@ -4,6 +4,15 @@ services:
     restart: unless-stopped
     expose:
       - "8000"
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pi-univesp.rule=Host(`pi-univesp.mzzu.com.br`)
+      - traefik.http.routers.pi-univesp.entrypoints=https
+      - traefik.http.routers.pi-univesp.tls=true
+      - traefik.http.routers.pi-univesp.tls.certresolver=letsencrypt
+      - traefik.http.services.pi-univesp.loadbalancer.server.port=8000
     volumes:
       - db_data:/app/database
     healthcheck:
@@ -12,6 +21,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+networks:
+  coolify:
+    external: true
 
 volumes:
   db_data:
